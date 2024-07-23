@@ -2,6 +2,7 @@ import 'package:bookstore/auth/firebase_auth.dart';
 import 'package:bookstore/cores/services/firebase_services.dart';
 import 'package:bookstore/screens/add_book.dart';
 import 'package:bookstore/screens/productDetail.dart';
+import 'package:bookstore/screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,8 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
         Get.to(AddBook());
         break;
       case 2:
-        // Log out
-        myauth.logout(context);
+        // Profile
+        Get.to(ProfileScreen());
         break;
     }
   }
@@ -69,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        actions: [],
       ),
       body: Column(
         children: [
@@ -245,8 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Add Book',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.logout),
-            label: 'Logout',
+            icon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,

@@ -29,16 +29,18 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return GetMaterialApp(
-            title: 'Flutter Demo',
-            translations: Languages(),
-            locale: Locale('en', 'US'),
-            fallbackLocale: Locale('en', 'US'),
-            theme: ThemeData.light(),
-            darkTheme: ThemeData.dark(),
-            debugShowCheckedModeBanner: false,
-            home: box1.get('isLogedin', defaultValue: false)
-                ? HomeScreen()
-                : LoginScreen());
+          title: 'Flutter Demo',
+          translations: Languages(),
+          locale: Locale('en', 'US'),
+          fallbackLocale: Locale('en', 'US'),
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          debugShowCheckedModeBanner: false,
+          home: box1.get('isLogedin', defaultValue: false)
+              ? HomeScreen()
+              : LoginScreen()
+          // home: ProfileScreen(),
+        );
       },
     );
   }
