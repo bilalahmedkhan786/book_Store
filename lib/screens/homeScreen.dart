@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 2:
         // Profile
-        Get.to(ProfileScreen());
+        Get.to((ProfileScreen()));
         break;
     }
   }
