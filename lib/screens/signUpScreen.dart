@@ -52,6 +52,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   hintText: 'Your Name Here',
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: Colors.black26,
+                    ),
                   ),
                   isDense: true,
                 ),
@@ -69,6 +72,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   hintText: 'Your Email Here',
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: Colors.black26,
+                    ),
                   ),
                   isDense: true,
                 ),
@@ -86,6 +92,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   hintText: 'Your Phone Number Here',
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: Colors.black26,
+                    ),
                   ),
                   isDense: true,
                 ),
@@ -98,12 +107,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               margin: EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
                 controller: passwordController,
+                obscureText: true,
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.password),
                   suffixIcon: Icon(Icons.visibility),
                   hintText: 'Your Password Here',
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: Colors.black26,
+                    ),
                   ),
                   isDense: true,
                 ),
@@ -114,12 +127,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             MyButton(
                 text: "SIGN UP",
-                onPressed: () {
-                  myauth.register(
-                      emailController.text, passwordController.text);
+                onPressed: () async {
+                  await myauth.register(
+                    nameController.text,
+                    emailController.text,
+                    phoneController.text,
+                    passwordController.text,
+                  );
                   emailController.clear();
                   passwordController.clear();
-                  Get.snackbar("Sign Up ", "User Resigter Succesfully");
+                  Get.snackbar("Sign Up", "User Registered Successfully");
                 }),
           ],
         ),

@@ -211,7 +211,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 bool isLogedIn = await myauth.login(
                                   emailController.text,
                                   passwordController.text,
-                                  context,
                                 );
 
                                 if (isLogedIn) {

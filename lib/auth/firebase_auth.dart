@@ -7,43 +7,61 @@ import 'package:get/get.dart';
 
 class Auth {
   FirebaseAuth auth = FirebaseAuth.instance;
-  FirebaseFirestore data = FirebaseFirestore.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  void register(String email, password) {
-   var date =  DateTime.now();
-    auth.createUserWithEmailAndPassword(email: email, password: password);
-    data.collection("users").doc(date.toString()).set({
-      "useremail": email,
-      "userpass": password,
-    }).then(
-        (value) => ScaffoldMessenger(child: Text("User Added successfully")));
+  Future<void> register(
+      String name, String email, String phone, String password) async {
+    try {
+      // Create a new user with email and password
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Get the current user
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // Save the user details to Firestore
+        await firestore.collection('users').doc(user.uid).set({
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'description': '', // or any other default value
+          'image_url': '', // or any other default value
+        });
+
+        print('User registered and firestore saved to Firestore successfully.');
+      }
+    } catch (e) {
+      print('Error during registration: $e');
+      Get.snackbar("Sign Up Error", e.toString());
+    }
   }
 
-  Future<bool> login(String email, password, BuildContext context) async {
+  Future<bool> login(String email, String password) async {
     bool isLogedIn = false;
-    await auth
-        .signInWithEmailAndPassword(email: email, password: password)
-        .then((value) => {
-              Get.snackbar("User Login", "Login Successfully"),
-              isLogedIn = true,
-              Get.offAll(
-                const HomeScreen(),
-              ),
-            });
-
+    try {
+      await auth.signInWithEmailAndPassword(email: email, password: password);
+      isLogedIn = true;
+      Get.snackbar("User Login", "Login Successfully");
+      Get.offAll(() => const HomeScreen());
+    } catch (e) {
+      Get.snackbar("Login Failed", e.toString());
+    }
     return isLogedIn;
   }
 
   void logout(BuildContext context) {
-    auth.signOut().then((value) => {
-          Get.snackbar("User Logout", "Logout Suceesfull"),
-          Get.offAll(LoginScreen()),
-        });
+    auth.signOut().then((value) {
+      Get.snackbar("User Logout", "Logout Successful");
+      Get.offAll(() => const LoginScreen());
+    });
   }
 
   void forgetpassword(String myemail, BuildContext context) {
-    auth
-        .sendPasswordResetEmail(email: myemail)
-        .then((value) => {Get.snackbar("Forgot Password", "Email Sent")});
+    auth.sendPasswordResetEmail(email: myemail).then((value) {
+      Get.snackbar("Forgot Password", "Email Sent");
+    });
   }
 }

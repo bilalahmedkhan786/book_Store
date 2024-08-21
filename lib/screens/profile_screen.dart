@@ -1,6 +1,11 @@
+import 'package:bookstore/auth/firebase_auth.dart';
+import 'package:bookstore/screens/edit_profile.dart';
+import 'package:bookstore/screens/homeScreen.dart';
+import 'package:bookstore/shared/widgets/profile_menu_wideget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,193 +15,162 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  Auth myauth = Auth();
+  bool _isDarkMode = Get.isDarkMode;
 
-  User? user;
-  Map<String, dynamic>? userDetails;
+  User? user = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String name = "";
+  String email = "";
+  String phone = "";
+  String description = "";
+  String profileImageUrl = "";
 
   @override
   void initState() {
     super.initState();
-    fetchUserDetails();
+    _fetchUserData();
   }
 
-  Future<void> fetchUserDetails() async {
-    user = _auth.currentUser;
-
+  Future<void> _fetchUserData() async {
     if (user != null) {
-      DocumentSnapshot doc =
+      DocumentSnapshot userData =
           await _firestore.collection('users').doc(user!.uid).get();
-      setState(() {
-        userDetails = doc.data() as Map<String, dynamic>?;
-      });
+      if (userData.exists) {
+        setState(() {
+          name = userData['name'] ?? '';
+          email = userData['email'] ?? '';
+          phone = userData['phone'] ?? '';
+          description = userData['description'] ?? '';
+          profileImageUrl = userData['image_url'] ?? '';
+        });
+      }
     }
+  }
+
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF8DBDFF),
-                Color(0xFF3C7DD9),
-              ],
-            ),
-          ),
-          child: userDetails == null
-              ? Center(child: CircularProgressIndicator())
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 100,
-                      backgroundImage: NetworkImage(
-                          userDetails!['profilePictureUrl'] ??
-                              "default_profile_picture_url"),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              // Add edit functionality here
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Text(
-                          "Edit",
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black,
-                                blurRadius: 2,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ProfileDetail(
-                            icon: Icons.person,
-                            title: "Username",
-                            value: userDetails!['username'] ?? "N/A",
-                          ),
-                          ProfileDetail(
-                            icon: Icons.email,
-                            title: "Email",
-                            value: userDetails!['email'] ?? "N/A",
-                          ),
-                          ProfileDetail(
-                            icon: Icons.phone,
-                            title: "Phone",
-                            value: userDetails!['phone'] ?? "N/A",
-                          ),
-                          ProfileDetail(
-                            icon: Icons.location_on,
-                            title: "Address",
-                            value: userDetails!['address'] ?? "N/A",
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Add logout functionality here
-                      },
-                      child: const Text("Logout"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 50, vertical: 15),
-                        backgroundColor: Colors.white,
-                        shadowColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        foregroundColor: Colors.blue,
-                      ),
-                    ),
-                  ],
-                ),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Get.to(HomeScreen());
+          },
+          icon: const Icon(Icons.arrow_back_ios_new),
         ),
-      ),
-    );
-  }
-}
-
-class ProfileDetail extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-
-  const ProfileDetail({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 10),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
+        title: const Center(child: Text("Profile")),
+        actions: [
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () {
+              Get.changeThemeMode(
+                  _isDarkMode ? ThemeMode.light : ThemeMode.dark);
+              _toggleTheme();
+            },
           ),
         ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 80,
+                  backgroundImage: profileImageUrl.isNotEmpty
+                      ? NetworkImage(profileImageUrl)
+                      : null,
+                  child: profileImageUrl.isEmpty
+                      ? Icon(Icons.person, size: 80)
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              name,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              email,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              phone,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 200,
+              child: ElevatedButton(
+                onPressed: () async {
+                  // Navigate to EditProfile and wait for result
+                  final result = await Get.to(() => const EditProfile());
+                  if (result == true) {
+                    // Refresh user data after editing
+                    _fetchUserData();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 125, 164, 231),
+                  shadowColor: Colors.black,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  "Edit Profile",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Divider(color: Colors.transparent),
+            const SizedBox(height: 10),
+            ProfileMenuWidget(
+                title: "Favorites", icon: Icons.favorite, onPress: () {}),
+            ProfileMenuWidget(
+                title: "Billing Details", icon: Icons.wallet, onPress: () {}),
+            ProfileMenuWidget(
+                title: "User Management",
+                icon: Icons.supervised_user_circle_outlined,
+                onPress: () {}),
+            const Divider(color: Color.fromARGB(17, 0, 0, 0)),
+            const SizedBox(height: 10),
+            ProfileMenuWidget(
+                title: "Information",
+                icon: Icons.info_outline_rounded,
+                onPress: () {}),
+            ProfileMenuWidget(
+              title: "Logout",
+              textColor: Colors.red,
+              icon: Icons.logout_sharp,
+              endIcon: false,
+              onPress: () {
+                myauth.logout(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

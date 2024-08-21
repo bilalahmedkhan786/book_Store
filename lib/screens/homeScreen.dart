@@ -1,5 +1,6 @@
 import 'package:bookstore/auth/firebase_auth.dart';
 import 'package:bookstore/cores/services/firebase_services.dart';
+import 'package:bookstore/cores/services/notification_service.dart';
 import 'package:bookstore/screens/add_book.dart';
 import 'package:bookstore/screens/productDetail.dart';
 import 'package:bookstore/screens/profile_screen.dart';
@@ -17,11 +18,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Auth myauth = Auth();
   MyFirebase db = MyFirebase();
-  final firestore = FirebaseFirestore.instance.collection('books').snapshots();
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   int _selectedIndex = 0;
+  NotificationServices notificationServices = NotificationServices();
 
   void getdata() {
     print(db.getCollection());
@@ -29,8 +30,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    notificationServices.requestNotificationPermission();
+    notificationServices.firebaseInit(context);
+    // notificationServices.isTokenRefresh();
+    notificationServices.getDeviceToken().then(
+      (value) {
+        print('device token');
+        print(value);
+      },
+    );
     getdata();
     super.initState();
+  }
+
+  bool _isDarkMode = Get.isDarkMode;
+
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
   }
 
   final Stream<QuerySnapshot> _usersStream =
@@ -41,17 +59,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex = index;
     });
 
-    // Add navigation logic based on the index here
     switch (index) {
       case 0:
-        // Navigate to home or do nothing since it's the current tab
         break;
       case 1:
-        // Navigate to add book screen
         Get.to(AddBook());
         break;
       case 2:
-        // Profile
         Get.to((ProfileScreen()));
         break;
     }
@@ -70,6 +84,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () {
+              Get.changeThemeMode(
+                  _isDarkMode ? ThemeMode.light : ThemeMode.dark);
+              _toggleTheme();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -133,7 +157,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
-                    return Text('Something went wrong');
+                    print('Firestore Error: ${snapshot.error}');
+                    return Center(
+                        child: Text('Something went wrong: ${snapshot.error}'));
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
