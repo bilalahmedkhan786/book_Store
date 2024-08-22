@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     notificationServices.requestNotificationPermission();
     notificationServices.firebaseInit(context);
+    notificationServices.setupInteractMessage(context);
     // notificationServices.isTokenRefresh();
     notificationServices.getDeviceToken().then(
       (value) {

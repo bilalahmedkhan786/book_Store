@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 
+import 'package:bookstore/screens/message_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 
 class NotificationServices {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -43,7 +46,9 @@ class NotificationServices {
 
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSetting,
-      onDidReceiveNotificationResponse: (payload) {},
+      onDidReceiveNotificationResponse: (payload) {
+        handleMessage(context, message);
+      },
     );
   }
 
@@ -52,9 +57,16 @@ class NotificationServices {
       if (kDebugMode) {
         print(message.notification!.title.toString());
         print(message.notification!.body.toString());
-        initLocalNotifications(context, message);
+        print(message.data.toString());
+        print(message.data['type']);
+        print(message.data['id']);
       }
-      showNotification(message);
+
+      if (Platform.isAndroid) {
+        initLocalNotifications(context, message);
+      } else {
+        showNotification(message);
+      }
     });
   }
 
@@ -108,5 +120,30 @@ class NotificationServices {
         print('refresh');
       },
     );
+  }
+
+  Future<void> setupInteractMessage(BuildContext context) async {
+    ///when app is terminated
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+
+    if (initialMessage != null) {
+      handleMessage(context, initialMessage);
+    }
+
+    /// when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (event) {
+        handleMessage(context, event);
+      },
+    );
+  }
+
+  void handleMessage(BuildContext context, RemoteMessage message) {
+    if (message.data['type'] == 'msg') {
+      Get.to(MessageScreen(
+        id: message.data['id'],
+      ));
+    }
   }
 }
